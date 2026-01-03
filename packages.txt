@@ -1,0 +1,6 @@
+# This file is used by Streamlit Cloud to install system packages
+# Add any system packages your app needs here
+# Example:
+# git
+# curl
+

@@ -1,0 +1,2 @@
+"""Finance transaction processing pipeline."""
+
