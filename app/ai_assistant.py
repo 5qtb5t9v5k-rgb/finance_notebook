@@ -173,10 +173,10 @@ def render_ai_assistant_tab(df: pd.DataFrame):
     excel_path = os.getenv("DEFAULT_EXCEL_PATH", "")
     if not excel_path:
         from src.config import DEFAULT_EXCEL_PATH
-        excel_path = DEFAULT_EXCEL_PATH
+        excel_path = DEFAULT_EXCEL_PATH or ""
     
     vector_db_exists = Path(vector_db_path).exists() and any(Path(vector_db_path).iterdir())
-    excel_modified = Path(excel_path).stat().st_mtime if Path(excel_path).exists() else 0
+    excel_modified = Path(excel_path).stat().st_mtime if excel_path and Path(excel_path).exists() else 0
     
     # Initialize or update vector store if needed
     if not vector_db_exists or 'vector_db_initialized' not in st.session_state:

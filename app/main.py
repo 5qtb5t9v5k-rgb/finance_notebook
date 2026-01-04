@@ -765,7 +765,7 @@ if st.session_state.df.empty:
     # Try to process default CSV file if it exists
     from src.config import DEFAULT_CSV_PATH
     from src.pipeline import process_file
-    if os.path.exists(DEFAULT_CSV_PATH):
+    if DEFAULT_CSV_PATH and os.path.exists(DEFAULT_CSV_PATH):
         with st.spinner("Processing CSV file..."):
             try:
                 st.session_state.df = process_file(DEFAULT_CSV_PATH, start_date='2025-01-01', verbose=False)

@@ -7,7 +7,8 @@ Git-repositorio on jo alustettu. Seuraavat vaiheet:
 ## Vaihe 2: Tee ensimmäinen commit
 
 ```bash
-cd /Users/juhorissanen/Desktop/finance_notebook
+# Siirry projektikansioon
+cd /path/to/finance_notebook
 
 # Tarkista mitä lisätään
 git status

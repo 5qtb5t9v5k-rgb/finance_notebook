@@ -36,11 +36,20 @@ def main():
     print("💰 Finance Transaction Pipeline")
     print("=" * 60)
     
-    # Tarkista että CSV-tiedosto on olemassa
+    # Tarkista että CSV-tiedosto on asetettu ja olemassa
+    if not DEFAULT_CSV_PATH:
+        print("❌ Virhe: DEFAULT_CSV_PATH ei ole asetettu!")
+        print("\n💡 Vinkki: Aseta DEFAULT_CSV_PATH ympäristömuuttujana tai .env-tiedostossa")
+        print("   1. Kopioi .env.example tiedosto .env-tiedostoksi:")
+        print("      cp .env.example .env")
+        print("   2. Muokkaa .env-tiedostoa ja aseta DEFAULT_CSV_PATH")
+        print("   3. Tai käytä data/raw/ -kansiota CSV-tiedostoillesi")
+        return 1
+    
     if not os.path.exists(DEFAULT_CSV_PATH):
         print(f"❌ Virhe: CSV-tiedosto ei löydy!")
         print(f"   Polku: {DEFAULT_CSV_PATH}")
-        print(f"\n💡 Vinkki: Muokkaa polkua src/config.py -tiedostossa")
+        print(f"\n💡 Vinkki: Tarkista polku .env-tiedostossa tai aseta DEFAULT_CSV_PATH ympäristömuuttujana")
         return 1
     
     print(f"\n📂 CSV-tiedosto: {DEFAULT_CSV_PATH}")

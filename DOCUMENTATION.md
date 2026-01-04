@@ -93,11 +93,6 @@ Tämä on "käyttöliittymä", jota käytät selaimessa:
 - **Analytics-välilehti**
   - Syvällisempiä analyysejä: trendit, vertailut, jakaumat
 
-#### 3. **Jupyter Notebook** (`notebooks/exploration.ipynb`)
-Tämä on "tutkimuslaboratorio":
-- Käytät sitä kun haluat tehdä nopeita kokeiluja
-- Voit testata uusia ideoita ilman että muutat pääkoodia
-- Käyttää samoja pipeline-moduuleja kuin Streamlit-sovellus
 
 ### Miten data liikkuu?
 
@@ -143,8 +138,6 @@ finance_notebook/
 │   └── pipeline.py        # Orchestrator (koordinoi kaiken)
 ├── app/                    # Streamlit-sovellus
 │   └── main.py           # Web-käyttöliittymä
-├── notebooks/              # Jupyter-notebookit
-│   └── exploration.ipynb # Interaktiivinen analyysi
 └── data/                   # Data-tiedostot
     ├── raw/              # Alkuperäiset CSV-tiedostot
     └── processed/        # Käsitellyt Excel-tiedostot
@@ -204,7 +197,7 @@ Valmis data
     ↓
 pipeline.py → save_to_excel()
     ↓
-Excel-tiedosto (OneDrive/kulutus.xlsx)
+Excel-tiedosto (data/processed/ tai DEFAULT_EXCEL_PATH)
 ```
 
 ### 6. Näyttäminen
@@ -684,17 +677,17 @@ cp /polku/uuteen/tiedostoon.csv data/raw/
 - Klikkaa "Save Changes" tallentaaksesi sessioniin
 - Klikkaa "Save All Changes to Excel" tallentaaksesi Exceliin
 
-### 4. Jupyter Notebookin Käyttö
+### 4. Datan Analysointi
 
-**Vaihe 1: Avaa notebook**
+**Vaihe 1: Käytä Streamlit-sovellusta**
 ```bash
-jupyter notebook notebooks/exploration.ipynb
+streamlit run app/main.py
 ```
 
-**Vaihe 2: Suorita solu**
+**Vaihe 2: Analysoi dataa**
 ```python
 from src.pipeline import process_file
-df = process_file('/Users/juhorissanen/Desktop/Transactions.csv')
+df = process_file('path/to/transactions.csv')
 ```
 
 **Vaihe 3: Analysoi dataa**

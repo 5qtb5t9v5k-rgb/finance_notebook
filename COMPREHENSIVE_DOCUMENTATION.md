@@ -137,8 +137,6 @@ finance_notebook/
 │   ├── raw/                     # Alkuperäiset CSV-tiedostot
 │   └── processed/               # Käsitellyt tiedostot
 │       └── vector_db/           # ChromaDB vektoritietokanta
-├── notebooks/                   # Jupyter-notebookit
-│   └── exploration.ipynb        # Datan tutkiminen
 ├── run_all.sh                   # Käynnistysskripti
 ├── run_pipeline.py              # Pipeline-ajoscripti
 ├── requirements.txt             # Python-riippuvuudet
@@ -395,20 +393,28 @@ AI Assistant -välilehden toteutus.
 
 ### Ympäristömuuttujat
 
-Luo `.env`-tiedosto projektin juureen:
+Luo `.env`-tiedosto projektin juureen (kopioi `.env.example` tiedostosta):
+
+```bash
+cp .env.example .env
+```
+
+Muokkaa `.env`-tiedostoa ja aseta tarvittavat arvot:
 
 ```env
+# OpenAI API Key (required for AI Assistant)
 OPENAI_API_KEY=sk-...
+
+# Default CSV file path (optional)
+# If not set, the app will look for CSV files in data/raw/ directory
+DEFAULT_CSV_PATH=/path/to/your/transactions.csv
+
+# Default Excel output path (optional)
+# If not set, Excel saving is disabled
+DEFAULT_EXCEL_PATH=/path/to/your/output.xlsx
 ```
 
-### Tiedostopolut
-
-Muokkaa `src/config.py` tiedostoa:
-
-```python
-DEFAULT_CSV_PATH = "/path/to/your/transactions.csv"
-DEFAULT_EXCEL_PATH = "/path/to/your/output.xlsx"
-```
+**Huomio**: `.env`-tiedosto on `.gitignore`-tiedostossa, joten henkilökohtaiset polut eivät päädy Git-repositorioon.
 
 ### Kategoriat
 

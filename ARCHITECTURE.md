@@ -125,12 +125,6 @@ Tämä on "käyttöliittymä", jota käytät selaimessa:
 - **Edit Categories**: Mahdollistaa kategorioiden ja notes-sarakkeen muokkaamisen
 - **Analytics**: Syvällisempiä analyysejä ja trendejä
 
-#### 3. Jupyter Notebook (`notebooks/`)
-
-Tämä on "tutkimuslaboratorio":
-- Käytät sitä kun haluat tehdä nopeita kokeiluja
-- Voit testata uusia ideoita ilman että muutat pääkoodia
-- Käyttää samoja pipeline-moduuleja kuin Streamlit-sovellus
 
 ---
 
@@ -186,7 +180,7 @@ Valmis data
     ↓
 pipeline.py → save_to_excel()
     ↓
-Excel-tiedosto (OneDrive/kulutus.xlsx)
+Excel-tiedosto (data/processed/ tai DEFAULT_EXCEL_PATH)
 ```
 
 ### Vaihe 6: Näyttäminen
@@ -246,7 +240,6 @@ Streamlit-sovellus
 - **plotly**: Interaktiiviset visualisoinnit
 - **streamlit**: Web-käyttöliittymä
 - **openpyxl**: Excel-tiedostojen käsittely
-- **jupyter**: Interaktiivinen tutkimus
 
 ### Rakenne
 
@@ -278,7 +271,6 @@ Streamlit-sovellus
 ### Muut tiedostot
 
 - **Shell-skriptit**: 84 riviä
-- **Jupyter Notebook**: 43 riviä
 - **Dokumentaatio**: 1,644 riviä
 
 **Yhteensä: ~4,000 riviä** koodia ja dokumentaatiota
@@ -302,9 +294,9 @@ Tämä projekti on **modulaarinen pipeline-järjestelmä**, joka:
 - Laajennettavan
 - Ymmärrettävän
 
-**Teknologiat**: Python, pandas, plotly, streamlit, jupyter
+**Teknologiat**: Python, pandas, plotly, streamlit
 
 **Koodimäärä**: ~4,000 riviä (koodi + dokumentaatio)
 
-**Rakenne**: 6 pipeline-moduulia + Streamlit-sovellus + Jupyter Notebook
+**Rakenne**: 6 pipeline-moduulia + Streamlit-sovellus
 

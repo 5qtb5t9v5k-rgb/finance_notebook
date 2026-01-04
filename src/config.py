@@ -1,6 +1,14 @@
 """Configuration file for category mappings, card mappings, and file paths."""
 
+import os
 from pathlib import Path
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv is optional
 
 # Base paths
 BASE_DIR = Path(__file__).parent.parent
@@ -9,9 +17,10 @@ RAW_DATA_DIR = DATA_DIR / "raw"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
 VECTOR_DB_PATH = PROCESSED_DATA_DIR / "vector_db"
 
-# Default file paths
-DEFAULT_CSV_PATH = "/Users/juhorissanen/Desktop/Transactions.csv"
-DEFAULT_EXCEL_PATH = "/Users/juhorissanen/OneDrive/kulutus.xlsx"
+# Default file paths (loaded from environment variables or None)
+# Set these in .env file or as environment variables
+DEFAULT_CSV_PATH = os.getenv("DEFAULT_CSV_PATH", None)
+DEFAULT_EXCEL_PATH = os.getenv("DEFAULT_EXCEL_PATH", None)
 
 # Card mappings (card_last4 -> card name)
 CARD_MAPPING = {

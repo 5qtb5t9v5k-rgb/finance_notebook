@@ -16,7 +16,6 @@ Modulaarinen pipeline Curve-sovelluksen tapahtumatietojen käsittelyyn, jossa on
 - **Modular Pipeline**: Clean, reusable functions for data processing
 - **Auto-detection**: Automatically detects and processes new CSV files
 - **Streamlit App**: Interactive web app for viewing, filtering, and editing transactions
-- **Jupyter Notebook**: For interactive exploration and ad-hoc analysis
 - **Category Management**: Automatic categorization with Finnish translations
 - **Cost Allocation**: Support for percentage-based cost allocation in notes
 - **AI Assistant**: Ask questions about your finances (optional, requires OpenAI API key - see [AI_ASSISTANT_SETUP.md](AI_ASSISTANT_SETUP.md))
@@ -29,14 +28,26 @@ pip install -r requirements.txt
 source venv/bin/activate  # If using virtual environment
 ```
 
-2. **Run Streamlit app:**
+2. **Configure environment variables (optional):**
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env and set your paths (optional)
+# - DEFAULT_CSV_PATH: Path to your CSV file (or use data/raw/ directory)
+# - DEFAULT_EXCEL_PATH: Path for Excel output (optional)
+# - OPENAI_API_KEY: Required for AI Assistant feature
+```
+
+3. **Run Streamlit app:**
 ```bash
 streamlit run app/main.py
 ```
 
-3. **Process your CSV file:**
-   - The app will automatically detect and process CSV files
-   - Or click "Process CSV File" button if needed
+4. **Process your CSV file:**
+   - Place CSV files in `data/raw/` directory, or
+   - Set `DEFAULT_CSV_PATH` in `.env` file, or
+   - Upload CSV file through the app interface
 
 ## Project Structure
 
@@ -51,8 +62,6 @@ finance_notebook/
 │   └── pipeline.py         # Main orchestrator
 ├── app/                    # Streamlit app
 │   └── main.py            # App entry point
-├── notebooks/             # Jupyter notebooks
-│   └── exploration.ipynb  # Analysis notebook
 └── data/                  # Data files
     ├── raw/              # Original CSV files
     └── processed/        # Processed Excel files
@@ -66,10 +75,10 @@ finance_notebook/
 from src.pipeline import process_file, process_new_files
 
 # Process a specific file
-df = process_file('path/to/transactions.csv', save_excel=True)
+df = process_file('path/to/transactions.csv', start_date='2025-01-01')
 
 # Auto-detect and process new files
-df = process_new_files(save_excel=True)
+df = process_new_files()
 ```
 
 ### Run Streamlit App
@@ -85,25 +94,29 @@ The app will:
 - Enable editing categories and notes
 - Save changes back to Excel
 
-### Use Jupyter Notebook
-
-Open `notebooks/exploration.ipynb` and run the cells. The notebook uses the pipeline modules for data processing.
-
 ## Configuration
+
+### Environment Variables
+
+Create a `.env` file (copy from `.env.example`) to configure:
+- `DEFAULT_CSV_PATH`: Path to your CSV file (optional, defaults to `data/raw/` directory)
+- `DEFAULT_EXCEL_PATH`: Path for Excel output (optional)
+- `OPENAI_API_KEY`: Required for AI Assistant feature
+
+### Category Mappings
 
 Edit `src/config.py` to:
 - Update category mappings
-- Change file paths
 - Modify card mappings
 - Adjust filtering rules
 
 ## Data Flow
 
-1. CSV files are placed in `data/raw/` (or use default path)
+1. CSV files are placed in `data/raw/` directory (or set `DEFAULT_CSV_PATH` in `.env`)
 2. Pipeline detects new/updated files
 3. Data is cleaned, categorized, and processed
-4. Results are saved to Excel (`data/processed/` or configured path)
-5. Streamlit app loads from Excel for viewing/editing
+4. Results are saved to Excel (`data/processed/` or `DEFAULT_EXCEL_PATH` from `.env`)
+5. Streamlit app loads data for viewing/editing
 
 ## Notes Format
 

@@ -4,10 +4,9 @@ Tämä ohje näyttää, miten ajaa koko pipeline-prosessin itsenäisesti alusta 
 
 ## Vaihtoehdot
 
-Voit ajaa pipeline-prosessin kolmella tavalla:
+Voit ajaa pipeline-prosessin kahdella tavalla:
 1. **Python-skriptinä** (suositus)
-2. **Jupyter Notebookissa**
-3. **Komentoriviltä suoraan**
+2. **Komentoriviltä suoraan**
 
 ---
 
@@ -42,7 +41,6 @@ print(f"📂 CSV-tiedosto: {DEFAULT_CSV_PATH}")
 df = process_file(
     csv_path=DEFAULT_CSV_PATH,
     start_date='2025-01-01',  # Suodata tapahtumat tämän päivämäärän jälkeen
-    save_excel=True,          # Tallenna Exceliin
     verbose=True              # Näytä yksityiskohtaiset viestit
 )
 
@@ -73,7 +71,6 @@ from src.pipeline import process_new_files
 print("🔍 Etsitään uusia CSV-tiedostoja...")
 
 df = process_new_files(
-    save_excel=True,  # Tallenna Exceliin
     verbose=True      # Näytä yksityiskohtaiset viestit
 )
 
@@ -87,15 +84,9 @@ else:
 
 ---
 
-## Vaihtoehto 3: Jupyter Notebookissa
+## Vaihtoehto 2: Python-skriptinä (vaihtoehtoinen tapa)
 
-### Vaihe 1: Avaa Jupyter Notebook
-
-```bash
-jupyter notebook notebooks/exploration.ipynb
-```
-
-### Vaihe 2: Suorita solu
+### Vaihe 1: Luo Python-skripti
 
 ```python
 from src.pipeline import process_file
@@ -105,7 +96,6 @@ from src.config import DEFAULT_CSV_PATH
 df = process_file(
     csv_path=DEFAULT_CSV_PATH,
     start_date='2025-01-01',
-    save_excel=True,
     verbose=True
 )
 
@@ -131,7 +121,7 @@ source venv/bin/activate
 python -c "
 from src.pipeline import process_file
 from src.config import DEFAULT_CSV_PATH
-df = process_file(DEFAULT_CSV_PATH, start_date='2025-01-01', save_excel=True, verbose=True)
+df = process_file(DEFAULT_CSV_PATH, start_date='2025-01-01', verbose=True)
 print(f'✅ Valmis! Käsitelty {len(df)} riviä.')
 "
 ```
@@ -194,17 +184,13 @@ save_to_excel(df, DEFAULT_EXCEL_PATH)
 
 - **`csv_path`** (pakollinen): Polku CSV-tiedostoon
   ```python
-  csv_path = "/Users/juhorissanen/Desktop/Transactions.csv"
+  csv_path = "path/to/transactions.csv"
+  # Tai käytä data/raw/ -kansiota
   ```
 
 - **`start_date`** (valinnainen): Suodata tapahtumat tämän päivämäärän jälkeen
   ```python
   start_date = '2025-01-01'  # Oletusarvo
-  ```
-
-- **`save_excel`** (valinnainen): Tallenna Exceliin
-  ```python
-  save_excel = True  # Oletusarvo: True
   ```
 
 - **`verbose`** (valinnainen): Näytä yksityiskohtaiset viestit
@@ -216,9 +202,8 @@ save_to_excel(df, DEFAULT_EXCEL_PATH)
 
 ```python
 df = process_file(
-    csv_path="/Users/juhorissanen/Desktop/Transactions.csv",
+    csv_path="path/to/transactions.csv",
     start_date='2025-01-01',
-    save_excel=True,
     verbose=True
 )
 ```
@@ -231,12 +216,11 @@ df = process_file(
 
 Jos `verbose=True`, näet yksityiskohtaiset viestit:
 ```
-🔄 Processing file: /Users/juhorissanen/Desktop/Transactions.csv
+🔄 Processing file: path/to/transactions.csv
 📊 Loaded 987 rows
 🧹 Cleaned data: 987 rows
 💰 Applied cost allocation
 🏷️ Categorized data
-💾 Saved to Excel: /Users/juhorissanen/OneDrive/kulutus.xlsx
 ✅ Processing complete!
 ```
 
@@ -344,7 +328,6 @@ def main():
         df = process_file(
             csv_path=DEFAULT_CSV_PATH,
             start_date='2025-01-01',
-            save_excel=True,
             verbose=True
         )
         
@@ -397,7 +380,7 @@ python run_pipeline.py
 ```python
 from src.pipeline import process_file
 from src.config import DEFAULT_CSV_PATH
-df = process_file(DEFAULT_CSV_PATH, save_excel=True, verbose=True)
+df = process_file(DEFAULT_CSV_PATH, start_date='2025-01-01', verbose=True)
 ```
 
 **Täydellinen prosessi:**
@@ -410,5 +393,5 @@ df = process_file(DEFAULT_CSV_PATH, save_excel=True, verbose=True)
 
 **Seuraava askel:**
 - Avaa Streamlit-sovellus: `streamlit run app/main.py`
-- Tai käytä Jupyter Notebookia analysoimaan dataa
+- Tai käytä Streamlit-sovellusta analysoimaan dataa
 
