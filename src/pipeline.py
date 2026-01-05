@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional, List
 import json
 from datetime import datetime
+import hashlib
 
 from .data_loader import (
     load_and_prepare_data, 
@@ -57,16 +58,31 @@ def get_file_info(file_path: Path) -> dict:
         "processed_time": datetime.now().isoformat()
     }
 
+def _make_processed_log_key(file_path: Path) -> str:
+    """
+    Create a stable, privacy-preserving key for processed-files log entries.
+
+    - If the file is under RAW_DATA_DIR, store it as a relative path (no user home leaks).
+    - Otherwise, store a deterministic hash of the absolute path.
+    """
+    try:
+        rel = file_path.resolve().relative_to(RAW_DATA_DIR.resolve())
+        return str(rel)
+    except Exception:
+        digest = hashlib.sha256(str(file_path.resolve()).encode("utf-8")).hexdigest()
+        return f"external:{digest}"
+
 
 def is_file_new_or_updated(file_path: Path, processed_log: dict) -> bool:
     """Check if file is new or has been updated since last processing."""
-    file_str = str(file_path)
-    
-    if file_str not in processed_log:
+    log_key = _make_processed_log_key(file_path)
+    legacy_key = str(file_path)
+    entry = processed_log.get(log_key) or processed_log.get(legacy_key)
+    if not entry:
         return True
     
     current_stat = file_path.stat()
-    last_modified = processed_log[file_str].get("modified_time", 0)
+    last_modified = entry.get("modified_time", 0)
     
     return current_stat.st_mtime > last_modified
 
@@ -246,7 +262,7 @@ def process_file(
     
     # Update processed files log
     processed_log = load_processed_files_log()
-    processed_log[str(csv_file)] = get_file_info(csv_file)
+    processed_log[_make_processed_log_key(csv_file)] = get_file_info(csv_file)
     save_processed_files_log(processed_log)
     
     return df
