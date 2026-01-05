@@ -8,7 +8,9 @@ font = "sans serif"
 [server]
 headless = true
 port = 8501
-enableCORS = false
+# Safer defaults for non-local deployments
+enableCORS = true
+enableXsrfProtection = true
 
 [browser]
 gatherUsageStats = false
