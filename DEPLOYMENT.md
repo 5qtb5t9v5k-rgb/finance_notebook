@@ -23,7 +23,7 @@ Your app is ready to deploy! Just follow these steps:
 
 After deployment, configure your OpenAI API key:
 
-1. Go to your app's **Settings** (gear icon)
+1. Go to your app's **Settings** (⚙️ icon)
 2. Click **Secrets**
 3. Add the following (TOML format):
 
@@ -75,7 +75,7 @@ OPENAI_API_KEY = "sk-your-api-key-here"
 
 ### App doesn't start
 
-1. Check the logs: App Settings -> Logs
+1. Check the logs: App Settings → Logs
 2. Verify `requirements.txt` has all dependencies
 3. Ensure `app/main.py` is the correct entry point
 4. Check Python version (recommended: 3.11)
