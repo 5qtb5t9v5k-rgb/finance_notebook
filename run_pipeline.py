@@ -25,8 +25,8 @@ if venv_python.exists() and sys.executable != str(venv_python):
 # Lisää src-hakemisto polkuun
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.pipeline import process_file
-from src.config import DEFAULT_CSV_PATH
+from src.pipeline import process_file, process_new_files
+from src.config import DEFAULT_CSV_PATH, RAW_DATA_DIR
 import os
 
 def main():
@@ -36,42 +36,48 @@ def main():
     print("💰 Finance Transaction Pipeline")
     print("=" * 60)
     
-    # Tarkista että CSV-tiedosto on asetettu ja olemassa
-    if not DEFAULT_CSV_PATH:
-        print("❌ Virhe: DEFAULT_CSV_PATH ei ole asetettu!")
-        print("\n💡 Vinkki: Aseta DEFAULT_CSV_PATH ympäristömuuttujana tai .env-tiedostossa")
-        print("   1. Kopioi .env.example tiedosto .env-tiedostoksi:")
-        print("      cp .env.example .env")
-        print("   2. Muokkaa .env-tiedostoa ja aseta DEFAULT_CSV_PATH")
-        print("   3. Tai käytä data/raw/ -kansiota CSV-tiedostoillesi")
-        return 1
-    
-    if not os.path.exists(DEFAULT_CSV_PATH):
-        print(f"❌ Virhe: CSV-tiedosto ei löydy!")
-        print(f"   Polku: {DEFAULT_CSV_PATH}")
-        print(f"\n💡 Vinkki: Tarkista polku .env-tiedostossa tai aseta DEFAULT_CSV_PATH ympäristömuuttujana")
-        return 1
-    
-    print(f"\n📂 CSV-tiedosto: {DEFAULT_CSV_PATH}")
-    
     try:
-        # Aja pipeline
-        print("\n🔄 Aloitetaan prosessointi...")
-        df = process_file(
-            csv_path=DEFAULT_CSV_PATH,
-            start_date='2025-01-01',
-            verbose=True
-        )
+        # Jos DEFAULT_CSV_PATH on asetettu, käytä sitä
+        if DEFAULT_CSV_PATH and os.path.exists(DEFAULT_CSV_PATH):
+            print(f"\n📂 CSV-tiedosto: {DEFAULT_CSV_PATH}")
+            print("\n🔄 Aloitetaan prosessointi...")
+            df = process_file(
+                csv_path=DEFAULT_CSV_PATH,
+                start_date='2025-01-01',
+                verbose=True
+            )
+        # Muuten yritä käyttää data/raw/ -kansiota
+        elif RAW_DATA_DIR.exists() and any(RAW_DATA_DIR.glob("*.csv")):
+            print(f"\n📂 Etsitään CSV-tiedostoja kansiosta: {RAW_DATA_DIR}")
+            print("\n🔄 Aloitetaan prosessointi...")
+            df = process_new_files(
+                directory=RAW_DATA_DIR,
+                start_date='2025-01-01',
+                verbose=True
+            )
+            if df is None or df.empty:
+                print("\n⚠️  Ei löytynyt käsiteltäviä CSV-tiedostoja.")
+                print("💡 Vinkki: Lisää CSV-tiedostoja data/raw/ -kansioon tai aseta DEFAULT_CSV_PATH .env-tiedostossa")
+                return 0  # Ei virhe, vain ei dataa
+        else:
+            print("⚠️  Ei löytynyt CSV-tiedostoja.")
+            print("\n💡 Vinkit:")
+            print("   1. Lisää CSV-tiedostoja data/raw/ -kansioon, TAI")
+            print("   2. Kopioi .env.example tiedosto .env-tiedostoksi:")
+            print("      cp .env.example .env")
+            print("   3. Muokkaa .env-tiedostoa ja aseta DEFAULT_CSV_PATH")
+            return 0  # Ei virhe, vain ei dataa
         
         # Näytä tulokset
-        print("\n" + "=" * 60)
-        print("✅ Pipeline valmis!")
-        print("=" * 60)
-        print(f"📊 Käsiteltyjä rivejä: {len(df)}")
-        print(f"📅 Aikaväli: {df['date'].min()} - {df['date'].max()}")
-        print(f"💰 Kokonaissumma: €{df['adjusted_amount'].sum():,.2f}")
-        print(f"📈 Kategorioita: {df['category'].nunique()}")
-        print(f"🏪 Kauppoja: {df['merchant'].nunique()}")
+        if df is not None and not df.empty:
+            print("\n" + "=" * 60)
+            print("✅ Pipeline valmis!")
+            print("=" * 60)
+            print(f"📊 Käsiteltyjä rivejä: {len(df)}")
+            print(f"📅 Aikaväli: {df['date'].min()} - {df['date'].max()}")
+            print(f"💰 Kokonaissumma: €{df['adjusted_amount'].sum():,.2f}")
+            print(f"📈 Kategorioita: {df['category'].nunique()}")
+            print(f"🏪 Kauppoja: {df['merchant'].nunique()}")
         
         return 0
         

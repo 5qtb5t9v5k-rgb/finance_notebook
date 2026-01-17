@@ -385,15 +385,6 @@ TOP 3 KASVAVAT KATEGORIAT:
                 if top_merchants:
                     merchant_list = ", ".join([f"{m['merchant']} (€{m['amount']:,.2f})" for m in top_merchants])
                     data_summary += f"  → Top merchantit: {merchant_list}\n"
-                
-                # Get top merchants for this category in period1
-                top_merchants = get_top_merchants_by_category(
-                    df, category, period_months, custom_start, custom_end,
-                    custom_period1_start, custom_period1_end, top_n=3
-                )
-                if top_merchants:
-                    merchant_list = ", ".join([f"{m['merchant']} (€{m['amount']:,.2f})" for m in top_merchants])
-                    data_summary += f"  → Top merchantit: {merchant_list}\n"
         
         data_summary += "\nTOP 3 LASKEVAT KATEGORIAT:\n"
         for idx, row in top_decreasing.iterrows():
@@ -417,7 +408,7 @@ TOP 3 KASVAVAT KATEGORIAT:
 Luo ytimekäs, toiminnallinen yhteenveto (2-4 lausetta), joka korostaa:
 1. Merkittävimmät kulutusmuutokset ja mitkä kaupat/merchantit selittävät nousua
 2. Keskeiset säästömahdollisuudet
-3. Huolestuttavat trendit
+3. Mielenkiintoinen havainto tarkastelujaksolta
 
 Ole tarkka numeroissa, kategorioissa ja kaupoissa. Mainitse konkreettisesti mitkä merchantit selittävät kulutuksen nousua. Kirjoita suomeksi."""
         
@@ -775,9 +766,8 @@ if st.session_state.df.empty:
                 st.warning(f"Could not process CSV: {e}")
 
 if st.session_state.df.empty:
-    st.info("No data found. Please upload a CSV file or process CSV files first.")
-    if st.button("Process CSV File"):
-        refresh_data()
+    st.info("📋 No data found. Please upload a CSV file using the sidebar (📤 Upload CSV File) or process CSV files from the sidebar (🔄 Refresh Data).")
+    st.warning("💡 **Tip:** Use the sidebar on the left to upload or process CSV files.")
 else:
     df = st.session_state.df.copy()
     
@@ -909,7 +899,8 @@ else:
             
             # Display monthly breakdown if month is selected
             if selected_month_str:
-                st.subheader(f"📊 Details for {selected_month_str}")
+                st.markdown(f"## 📊 Monthly Summary: {selected_month_str}")
+                st.divider()
                 
                 # Filter data for selected month
                 month_df = df[df['date'].dt.to_period('M').astype(str) == selected_month_str]
@@ -1086,6 +1077,8 @@ else:
         
         # Category breakdown with drill-down
         if 'category' in df.columns and 'adjusted_amount' in df.columns:
+            st.markdown("## 💰 Total Spending")
+            st.divider()
             col1, col2 = st.columns(2)
             
             with col1:
@@ -1924,7 +1917,7 @@ else:
                         if changes_result:
                             # Button to generate insights
                             if st.button("🚀 Generate Insights", use_container_width=True, type="primary"):
-                                with st.spinner("Generating insights..."):
+                                with st.spinner("🤖 Generating insights (this may take 10-30 seconds)..."):
                                     changes_df_insights, period1_name_insights, period2_name_insights = changes_result
                                     
                                     # Get opportunities and high vs avg for the selected period
@@ -2426,36 +2419,6 @@ else:
                     # Percentage of total
                     pct_of_total = (top_merchants.sum() / df['adjusted_amount'].sum()) * 100
                     st.metric("% of Total", f"{pct_of_total:.1f}%")
-        
-        # Spending distribution
-        if 'adjusted_amount' in df.columns:
-            st.subheader("Spending Distribution")
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Histogram
-                fig_hist = px.histogram(
-                    df,
-                    x='adjusted_amount',
-                    nbins=50,
-                    title="Transaction Amount Distribution",
-                    labels={'adjusted_amount': 'Amount (€)', 'count': 'Frequency'}
-                )
-                fig_hist.update_layout(height=300)
-                st.plotly_chart(fig_hist, use_container_width=True)
-            
-            with col2:
-                # Box plot by category
-                if 'category' in df.columns:
-                    fig_box = px.box(
-                        df,
-                        x='category',
-                        y='adjusted_amount',
-                        title="Spending Distribution by Category",
-                        labels={'category': 'Category', 'adjusted_amount': 'Amount (€)'}
-                    )
-                    fig_box.update_layout(height=300, xaxis_tickangle=-45)
-                    st.plotly_chart(fig_box, use_container_width=True)
     
     with tab3:
         st.header("Transaction Table")
