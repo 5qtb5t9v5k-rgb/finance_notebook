@@ -3,15 +3,6 @@
 import sys
 import os
 
-# Debug: Show which Python is being used (can be removed later)
-if 'streamlit' not in sys.modules:
-    # Only print once when module is first imported
-    expected_venv_python = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'venv', 'bin', 'python')
-    if not sys.executable.startswith(os.path.dirname(os.path.dirname(__file__))):
-        print(f"⚠️ WARNING: Streamlit is using system Python: {sys.executable}")
-        print(f"   Expected venv Python: {expected_venv_python}")
-        print(f"   This may cause import errors. Please restart Streamlit using run_all.sh")
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -1958,10 +1949,10 @@ else:
                                             api_key
                                         )
                                         
-                                        if insights and not insights.startswith("Error:"):
+                                        if insights and not insights.startswith("Error:") and insights.strip():
                                             st.session_state['analytics_insights'] = insights
                                             st.session_state['analytics_insights_period'] = f"{period1_name_insights} vs {period2_name_insights}"
-                                            st.rerun()
+                                            st.success("✅ Insights generated successfully!")
                                         else:
                                             error_msg = insights if insights and insights.startswith("Error:") else "Unknown error - check API key and OpenAI package installation"
                                             st.error(f"❌ Failed to generate insights: {error_msg}")
@@ -1971,6 +1962,7 @@ else:
                                                 st.write(f"**Python executable:** {sys.executable}")
                                                 st.write(f"**API Key present:** {bool(api_key)}")
                                                 st.write(f"**LLM Available:** {LLM_AVAILABLE}")
+                                                st.write(f"**Insights value:** {repr(insights)}")
                                                 try:
                                                     from openai import OpenAI
                                                     import openai
@@ -1983,6 +1975,9 @@ else:
                                         import traceback
                                         with st.expander("🔍 Debug Details"):
                                             st.code(traceback.format_exc())
+                                
+                                # Rerun to show the insights
+                                st.rerun()
                             
                             # Display stored insights if available
                             if 'analytics_insights' in st.session_state and 'analytics_insights_period' in st.session_state:

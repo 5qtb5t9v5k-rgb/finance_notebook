@@ -252,28 +252,35 @@ Streamlit-sovellus
 
 ## Koodimäärät
 
-### Python-koodi: 2,274 riviä
+### Python-koodi: ~5,000 riviä
 
-**Pipeline-moduulit (`src/`): 1,068 riviä**
-- `pipeline.py` - 311 riviä (orchestrator)
+**Pipeline-moduulit (`src/`): ~2,270 riviä**
+- `pipeline.py` - 321 riviä (orchestrator)
+- `ai_router.py` - 304 riviä (AI-reititys)
+- `ai_tools.py` - 307 riviä (AI-työkalut)
 - `categorizer.py` - 256 riviä (kategorisointi)
+- `vector_store.py` - 212 riviä (vektoritietokanta)
+- `data_formatter.py` - 166 riviä (datan muotoilu)
 - `data_cleaner.py` - 164 riviä (datan siivous)
 - `data_loader.py` - 156 riviä (CSV-lataus)
-- `config.py` - 124 riviä (asetukset)
+- `config.py` - 134 riviä (asetukset)
+- `ai_assistant_agent.py` - 102 riviä (AI-agentti)
+- `llm_client.py` - 88 riviä (LLM-asiakas)
 - `cost_allocator.py` - 55 riviä (kustannusjakojen käsittely)
 
-**Streamlit-sovellus (`app/`): 1,126 riviä**
-- `main.py` - 1,124 riviä (web-käyttöliittymä)
+**Streamlit-sovellus (`app/`): ~2,770 riviä**
+- `main.py` - ~2,770 riviä (web-käyttöliittymä)
 
-**Muut Python-tiedostot: 80 riviä**
+**Muut Python-tiedostot: ~160 riviä**
 - `run_pipeline.py` - 80 riviä (pipeline-ajoskripti)
+- `auto_process.py` - 80 riviä (automaattinen käsittely)
 
 ### Muut tiedostot
 
-- **Shell-skriptit**: 84 riviä
-- **Dokumentaatio**: 1,644 riviä
+- **Shell-skriptit**: ~100 riviä
+- **Dokumentaatio**: ~2,000 riviä
 
-**Yhteensä: ~4,000 riviä** koodia ja dokumentaatiota
+**Yhteensä: ~7,000 riviä** koodia ja dokumentaatiota
 
 ---
 
@@ -287,6 +294,8 @@ Tämä projekti on **modulaarinen pipeline-järjestelmä**, joka:
 5. **Laskee** kustannusjakot
 6. **Tallentaa** valmiin datan Exceliin
 7. **Näyttää** datan interaktiivisessa web-käyttöliittymässä
+8. **AI Assistant** vastaa kysymyksiin taloustiedoista (valinnainen)
+9. **AI-Powered Insights** luo automaattisia analyysejä (valinnainen)
 
 **Modulaarinen rakenne** tekee järjestelmästä:
 - Ylläpidettävän
@@ -294,9 +303,9 @@ Tämä projekti on **modulaarinen pipeline-järjestelmä**, joka:
 - Laajennettavan
 - Ymmärrettävän
 
-**Teknologiat**: Python, pandas, plotly, streamlit
+**Teknologiat**: Python, pandas, plotly, streamlit, OpenAI API, ChromaDB
 
-**Koodimäärä**: ~4,000 riviä (koodi + dokumentaatio)
+**Koodimäärä**: ~7,000 riviä (koodi + dokumentaatio)
 
-**Rakenne**: 6 pipeline-moduulia + Streamlit-sovellus
+**Rakenne**: 12 pipeline-moduulia + Streamlit-sovellus + AI Assistant
 

@@ -32,6 +32,7 @@ ENV/
 *.swp
 *.swo
 *~
+*.code-workspace
 
 # Environment variables
 .env
@@ -41,6 +42,7 @@ ENV/
 data/raw/*.csv
 data/processed/*.xlsx
 data/processed/vector_db/
+data/processed/.processed_files.json
 
 # Jupyter Notebook
 .ipynb_checkpoints
