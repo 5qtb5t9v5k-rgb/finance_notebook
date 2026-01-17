@@ -23,13 +23,20 @@ def get_api_key() -> str:
 
 from src.data_formatter import format_data_for_llm
 from src.llm_client import get_llm_response
-from src.vector_store import (
-    initialize_vector_store,
-    store_transactions,
-    search_relevant_transactions
-)
-from src.config import VECTOR_DB_PATH
 from src.ai_assistant_agent import answer_with_tools
+
+# Try to import vector store (optional, requires chromadb)
+try:
+    from src.vector_store import (
+        initialize_vector_store,
+        store_transactions,
+        search_relevant_transactions
+    )
+    from src.config import VECTOR_DB_PATH
+    VECTOR_STORE_AVAILABLE = True
+except ImportError:
+    VECTOR_STORE_AVAILABLE = False
+    VECTOR_DB_PATH = None
 
 
 def ensure_dt(df: pd.DataFrame) -> pd.DataFrame:
@@ -176,40 +183,43 @@ def render_ai_assistant_tab(df: pd.DataFrame):
     
     formatted_data = st.session_state.ai_formatted_data
     
-    # Initialize vector store (RAG)
-    vector_db_path = str(VECTOR_DB_PATH)
+    # Initialize vector store (RAG) - only if chromadb is available
+    vector_db_exists = False
     collection_name = "transactions"
     
-    # Check if vector store needs to be updated
-    # Compare Excel file modification time with vector DB
-    excel_path = os.getenv("DEFAULT_EXCEL_PATH", "")
-    if not excel_path:
-        from src.config import DEFAULT_EXCEL_PATH
-        excel_path = DEFAULT_EXCEL_PATH or ""
-    
-    vector_db_exists = Path(vector_db_path).exists() and any(Path(vector_db_path).iterdir())
-    excel_modified = Path(excel_path).stat().st_mtime if excel_path and Path(excel_path).exists() else 0
-    
-    # Initialize or update vector store if needed
-    if not vector_db_exists or 'vector_db_initialized' not in st.session_state:
-        try:
-            with st.spinner("Luodaan vektoritietokantaa (ensimmäinen käyttö voi kestää hetken)..."):
-                store_transactions(df, collection_name, api_key, vector_db_path, clear_existing=True)
-                st.session_state.vector_db_initialized = True
-                st.session_state.vector_db_timestamp = excel_modified
-        except Exception as e:
-            st.warning(f"⚠️ Vektoritietokannan luonti epäonnistui: {str(e)}")
-            st.info("Käytetään yhteenvetoa ilman RAG-ominaisuutta.")
-            vector_db_exists = False
-    elif excel_modified > st.session_state.get('vector_db_timestamp', 0):
-        # Data has changed, update vector store
-        try:
-            with st.spinner("Päivitetään vektoritietokantaa..."):
-                # Clear existing and recreate (clear_existing=True handles this)
-                store_transactions(df, collection_name, api_key, vector_db_path, clear_existing=True)
-                st.session_state.vector_db_timestamp = excel_modified
-        except Exception as e:
-            st.warning(f"⚠️ Vektoritietokannan päivitys epäonnistui: {str(e)}")
+    if VECTOR_STORE_AVAILABLE and VECTOR_DB_PATH:
+        vector_db_path = str(VECTOR_DB_PATH)
+        
+        # Check if vector store needs to be updated
+        # Compare Excel file modification time with vector DB
+        excel_path = os.getenv("DEFAULT_EXCEL_PATH", "")
+        if not excel_path:
+            from src.config import DEFAULT_EXCEL_PATH
+            excel_path = DEFAULT_EXCEL_PATH or ""
+        
+        vector_db_exists = Path(vector_db_path).exists() and any(Path(vector_db_path).iterdir()) if Path(vector_db_path).exists() else False
+        excel_modified = Path(excel_path).stat().st_mtime if excel_path and Path(excel_path).exists() else 0
+        
+        # Initialize or update vector store if needed
+        if not vector_db_exists or 'vector_db_initialized' not in st.session_state:
+            try:
+                with st.spinner("Luodaan vektoritietokantaa (ensimmäinen käyttö voi kestää hetken)..."):
+                    store_transactions(df, collection_name, api_key, vector_db_path, clear_existing=True)
+                    st.session_state.vector_db_initialized = True
+                    st.session_state.vector_db_timestamp = excel_modified
+            except Exception as e:
+                st.warning(f"⚠️ Vektoritietokannan luonti epäonnistui: {str(e)}")
+                st.info("Käytetään yhteenvetoa ilman RAG-ominaisuutta.")
+                vector_db_exists = False
+        elif excel_modified > st.session_state.get('vector_db_timestamp', 0):
+            # Data has changed, update vector store
+            try:
+                with st.spinner("Päivitetään vektoritietokantaa..."):
+                    # Clear existing and recreate (clear_existing=True handles this)
+                    store_transactions(df, collection_name, api_key, vector_db_path, clear_existing=True)
+                    st.session_state.vector_db_timestamp = excel_modified
+            except Exception as e:
+                st.warning(f"⚠️ Vektoritietokannan päivitys epäonnistui: {str(e)}")
     
     # Get current date for context
     from datetime import datetime
@@ -469,13 +479,13 @@ Anna konkreettisia analyyseja ja suosituksia säästämisestä. Ole ystävällin
         relevant_transactions_text = ""
         
         # Use RAG for semantic queries (if not order-based query)
-        if vector_db_exists and 'vector_db_initialized' in st.session_state:
+        if VECTOR_STORE_AVAILABLE and vector_db_exists and 'vector_db_initialized' in st.session_state:
             try:
                 relevant_transactions = search_relevant_transactions(
                     user_input, 
                     collection_name, 
                     api_key, 
-                    vector_db_path, 
+                    str(VECTOR_DB_PATH), 
                     top_k=15
                 )
                 

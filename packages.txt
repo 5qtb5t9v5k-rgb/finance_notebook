@@ -1,5 +1,3 @@
 # This file is used by Streamlit Cloud to install system packages
-# Required for chromadb (vector database)
-build-essential
-python3-dev
+# Currently no system packages required
 
