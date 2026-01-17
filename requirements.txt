@@ -1,12 +1,17 @@
+# Core dependencies
 pandas>=2.0.0
 numpy>=1.24.0
 plotly>=5.14.0
 streamlit>=1.28.0
 openpyxl>=3.1.0
-ipywidgets>=8.1.0
-jupyter>=1.0.0
+
+# AI features
 openai>=1.0.0
+
+# Utilities
 python-dotenv>=1.0.0
-chromadb>=0.4.0
 watchdog>=3.0.0
+
+# Vector database for AI Assistant (optional, may cause issues on some platforms)
+chromadb>=0.4.0
 
