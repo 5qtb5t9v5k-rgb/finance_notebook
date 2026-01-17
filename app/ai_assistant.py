@@ -9,6 +9,18 @@ import sys
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+
+def get_api_key() -> str:
+    """Get OpenAI API key from Streamlit secrets or environment variables."""
+    # Try Streamlit secrets first (for Streamlit Cloud)
+    try:
+        if hasattr(st, 'secrets') and 'OPENAI_API_KEY' in st.secrets:
+            return st.secrets['OPENAI_API_KEY']
+    except Exception:
+        pass
+    # Fall back to environment variable (for local development)
+    return os.getenv('OPENAI_API_KEY', '')
+
 from src.data_formatter import format_data_for_llm
 from src.llm_client import get_llm_response
 from src.vector_store import (
@@ -125,7 +137,7 @@ def render_ai_assistant_tab(df: pd.DataFrame):
         st.session_state.ai_model = "gpt-4o-mini"
     
     # Check for API key
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = get_api_key()
     
     if not api_key:
         st.warning("⚠️ OpenAI API-avain puuttuu")
@@ -136,15 +148,15 @@ def render_ai_assistant_tab(df: pd.DataFrame):
            - Mene osoitteeseen: https://platform.openai.com/api-keys
            - Luo uusi API-avain
         
-        2. **Aseta ympäristömuuttuja:**
+        2. **Aseta ympäristömuuttuja (paikallinen kehitys):**
            - Luo `.env`-tiedosto projektin juureen
            - Lisää rivi: `OPENAI_API_KEY=sk-...`
-           - Tai aseta ympäristömuuttuja suoraan:
-             ```bash
-             export OPENAI_API_KEY=sk-...
-             ```
         
-        3. **Käynnistä sovellus uudelleen**
+        3. **Tai Streamlit Cloud:**
+           - Mene App Settings → Secrets
+           - Lisää: `OPENAI_API_KEY = "sk-..."`
+        
+        4. **Käynnistä sovellus uudelleen**
         
         Katso tarkemmat ohjeet: `AI_ASSISTANT_SETUP.md`
         """)

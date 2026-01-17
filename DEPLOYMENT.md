@@ -1,95 +1,130 @@
-# Streamlit Cloud - Julkaisuohje
+# Streamlit Cloud - Deployment Guide
 
-## Valmistelu
+## Quick Start
 
-1. **Puske projekti GitHubiin**
+Your app is ready to deploy! Just follow these steps:
 
-```bash
-# Alusta Git (jos ei ole tehty)
-git init
+### Step 1: Deploy to Streamlit Cloud
 
-# Lisää kaikki tiedostot
-git add .
+1. **Go to Streamlit Cloud**: https://share.streamlit.io/
 
-# Tee ensimmäinen commit
-git commit -m "Initial commit: Finance Transaction Manager"
+2. **Sign in** with your GitHub account
 
-# Luo GitHub-repositorio (tee se GitHubissa manuaalisesti)
-# Sitten lisää remote ja puske:
-git remote add origin https://github.com/KÄYTTÄJÄNIMI/finance_notebook.git
-git branch -M main
-git push -u origin main
-```
+3. **Click "New app"**
 
-## Streamlit Cloud -julkaisu
-
-1. **Mene Streamlit Cloudiin**: https://share.streamlit.io/
-
-2. **Kirjaudu sisään** GitHub-tililläsi
-
-3. **Klikkaa "New app"**
-
-4. **Täytä tiedot**:
-   - **Repository**: Valitse `KÄYTTÄJÄNIMI/finance_notebook`
+4. **Fill in the details**:
+   - **Repository**: `5qtb5t9v5k-rgb/finance_notebook`
    - **Branch**: `main`
    - **Main file path**: `app/main.py`
 
-5. **Advanced settings** (valinnainen):
-   - **Python version**: 3.11
-   - **Secrets**: Lisää ympäristömuuttujat:
-     ```
-     OPENAI_API_KEY=sk-...
-     ```
+5. **Click "Deploy"**
 
-6. **Klikkaa "Deploy"**
+### Step 2: Configure Secrets (Required for AI Features)
 
-## Ympäristömuuttujat (Secrets)
+After deployment, configure your OpenAI API key:
 
-Streamlit Cloudissa voit lisätä ympäristömuuttujat "Secrets" -osiossa:
+1. Go to your app's **Settings** (gear icon)
+2. Click **Secrets**
+3. Add the following (TOML format):
 
-1. Mene appin asetuksiin
-2. Klikkaa "Secrets"
-3. Lisää:
-   ```toml
-   OPENAI_API_KEY = "sk-..."
-   ```
+```toml
+OPENAI_API_KEY = "sk-your-api-key-here"
+```
 
-Tai käytä `.streamlit/secrets.toml` tiedostoa (mutta **älä** commitoi sitä Gitiin, jos siinä on API-avaimia).
+4. Click **Save**
 
-## Tärkeät tiedostot
+The app will automatically reload with the new secrets.
 
-- `requirements.txt` - Python-riippuvuudet
-- `packages.txt` - Järjestelmäpaketit (jos tarvitaan)
-- `.streamlit/config.toml` - Streamlit-asetukset
-- `.gitignore` - Git-ignorointi
+---
 
-## Ongelmanratkaisu
+## Detailed Instructions
 
-### Sovellus ei käynnisty
+### Prerequisites
 
-- Tarkista että `requirements.txt` on oikein
-- Tarkista että `app/main.py` on oikea pääsovellus
-- Tarkista logit Streamlit Cloudissa
+- GitHub account
+- Streamlit Cloud account (free)
+- OpenAI API key (for AI features)
 
-### API-avain ei toimi
+### Important Files
 
-- Tarkista että Secrets on asetettu oikein
-- Tarkista että `.env`-tiedosto ei ole commitoitu (se on .gitignore:ssa)
+| File | Purpose |
+|------|---------|
+| `requirements.txt` | Python dependencies |
+| `packages.txt` | System packages (if needed) |
+| `.streamlit/config.toml` | Streamlit configuration |
+| `.streamlit/secrets.toml.example` | Example secrets format |
 
-### Import-virheet
+### Secrets Format
 
-- Varmista että kaikki riippuvuudet ovat `requirements.txt`:ssä
-- Tarkista että Python-versio on oikea (3.11)
+Streamlit Cloud uses TOML format for secrets:
 
-## Päivitykset
+```toml
+# Required for AI Assistant and AI-Powered Insights
+OPENAI_API_KEY = "sk-your-api-key-here"
 
-Kun teet muutoksia:
+# Optional settings
+# DEFAULT_CSV_PATH = "/path/to/file.csv"
+# DEFAULT_EXCEL_PATH = "/path/to/output.xlsx"
+```
+
+**Important**: Never commit your actual secrets to Git!
+
+---
+
+## Troubleshooting
+
+### App doesn't start
+
+1. Check the logs: App Settings -> Logs
+2. Verify `requirements.txt` has all dependencies
+3. Ensure `app/main.py` is the correct entry point
+4. Check Python version (recommended: 3.11)
+
+### AI features don't work
+
+1. Verify OPENAI_API_KEY is set in Secrets
+2. Check the format (must be TOML with quotes)
+3. Ensure the API key is valid and has credits
+
+### Import errors
+
+1. Add missing packages to `requirements.txt`
+2. Redeploy the app
+
+---
+
+## Updates
+
+When you push changes to GitHub, Streamlit Cloud automatically redeploys:
 
 ```bash
 git add .
-git commit -m "Update: kuvaus muutoksista"
+git commit -m "Your update message"
 git push
 ```
 
-Streamlit Cloud päivittyy automaattisesti!
+The app updates within 1-2 minutes.
 
+---
+
+## Local Development
+
+For local testing before deployment:
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Create .env file with your API key
+echo 'OPENAI_API_KEY=sk-...' > .env
+
+# Run the app
+streamlit run app/main.py
+```
+
+---
+
+## Support
+
+- Streamlit Cloud Docs: https://docs.streamlit.io/streamlit-community-cloud
+- OpenAI API Docs: https://platform.openai.com/docs

@@ -17,6 +17,19 @@ try:
 except ImportError:
     pass  # python-dotenv is optional
 
+
+def get_api_key() -> str:
+    """Get OpenAI API key from Streamlit secrets or environment variables."""
+    # Try Streamlit secrets first (for Streamlit Cloud)
+    try:
+        if hasattr(st, 'secrets') and 'OPENAI_API_KEY' in st.secrets:
+            return st.secrets['OPENAI_API_KEY']
+    except Exception:
+        pass
+    # Fall back to environment variable (for local development)
+    return os.getenv('OPENAI_API_KEY', '')
+
+
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -337,10 +350,10 @@ def generate_analytics_insights(
         Formatted insights summary or None if error
     """
     if not api_key:
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = get_api_key()
     
     if not api_key:
-        return "Error: OpenAI API key not found. Please set OPENAI_API_KEY in .env file."
+        return "Error: OpenAI API key not found. Please set OPENAI_API_KEY in .env file or Streamlit secrets."
     
     # Check if LLM client is available
     if not LLM_AVAILABLE:
@@ -1898,10 +1911,10 @@ else:
                 # AI-Powered Insights (on-demand generation)
                 st.markdown("#### 🤖 AI-Powered Insights")
                 with st.expander("💡 Generate Smart Insights", expanded=False):
-                    api_key = os.getenv('OPENAI_API_KEY')
+                    api_key = get_api_key()
                     # Check if API key and LLM are available
                     if not api_key:
-                        st.warning("⚠️ OpenAI API key not found. Please set OPENAI_API_KEY in .env file.")
+                        st.warning("⚠️ OpenAI API key not found. Please set OPENAI_API_KEY in .env file or Streamlit secrets.")
                     elif not LLM_AVAILABLE:
                         st.warning("⚠️ LLM client not available. Check that src.llm_client can be imported.")
                     elif api_key and LLM_AVAILABLE:
