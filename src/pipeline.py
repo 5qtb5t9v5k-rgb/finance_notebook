@@ -211,17 +211,6 @@ def process_dataframe(
     return df
 
 
-def save_to_excel(df: pd.DataFrame, excel_path: Optional[str] = None):
-    """
-    Save DataFrame to Excel file (deprecated - data now stored in session state).
-    
-    Args:
-        df: DataFrame to save
-        excel_path: Path to Excel file (ignored)
-    """
-    # No-op: data is now stored in Streamlit session state
-    pass
-
 
 def process_file(
     csv_path: str,
@@ -306,16 +295,4 @@ def process_new_files(
     return pd.DataFrame()
 
 
-def load_processed_data(excel_path: Optional[str] = None) -> pd.DataFrame:
-    """
-    Load processed data from Excel file (deprecated - data now stored in session state).
-    
-    Args:
-        excel_path: Path to Excel file (ignored)
-        
-    Returns:
-        Empty DataFrame (data is now stored in Streamlit session state)
-    """
-    # Return empty DataFrame - data is now stored in Streamlit session state
-    return pd.DataFrame()
 

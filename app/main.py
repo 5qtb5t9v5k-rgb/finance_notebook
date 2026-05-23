@@ -33,13 +33,6 @@ def get_api_key() -> str:
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Try to import AI Assistant (optional feature)
-try:
-    from app.ai_assistant import render_ai_assistant_tab
-    AI_ASSISTANT_AVAILABLE = True
-except ImportError:
-    AI_ASSISTANT_AVAILABLE = False
-
 # Try to import LLM client for insights
 try:
     from src.llm_client import get_llm_response
@@ -775,13 +768,7 @@ if st.session_state.df.empty:
 else:
     df = st.session_state.df.copy()
     
-    # Tabs - järjestetty: Dashboard, Analytics, Transactions, Edit Categories, Budget, AI Assistant
-    tab_names = ["📊 Dashboard", "📈 Analytics", "📋 Transactions", "✏️ Edit Categories", "💰 Budget"]
-    if AI_ASSISTANT_AVAILABLE:
-        tab_names.append("🤖 AI Assistant")
-    else:
-        tab_names.append("🤖 AI (Ei saatavilla)")
-    
+    tab_names = ["📊 Dashboard", "📈 Analytics", "📋 Transactions", "✏️ Edit Categories", "💰 Budget", "🤖 Chat"]
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(tab_names)
     
     with tab1:
@@ -2771,8 +2758,5 @@ else:
                 st.info("Category or amount data not available.")
     
     with tab6:
-        if AI_ASSISTANT_AVAILABLE:
-            render_ai_assistant_tab(df)
-        else:
-            st.info("AI Assistant -ominaisuus ei ole saatavilla. Asenna openai-paketti: `pip install openai`")
+        st.info("🚧 Finance Coach -chat rakenteilla. Tänne tulee MCP-pohjainen chat joka osaa vastata talouskyselyihin suomeksi.")
 

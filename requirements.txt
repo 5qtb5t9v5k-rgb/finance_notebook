@@ -5,5 +5,6 @@ plotly==5.14.0
 openpyxl==3.1.0
 openai==1.0.0
 python-dotenv==1.0.0
+supabase>=2.0.0
 # chromadb>=0.4.0  # Optional: uncomment if you need RAG features (may cause installation issues on Streamlit Cloud)
 
