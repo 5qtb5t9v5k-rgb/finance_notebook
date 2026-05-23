@@ -5,6 +5,7 @@ from typing import Optional
 from .config import (
     EXCLUDE_CURRENCIES,
     EXCLUDE_CARD_LAST4,
+    EXCLUDE_NOTES,
     DEFAULT_START_DATE
 )
 
@@ -116,6 +117,10 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
         for card_num in EXCLUDE_CARD_LAST4:
             df = df[df["card_last4"] != card_num]
     
+    # Suodata EXCLUDE_NOTES (del jne.)
+    if "notes" in df.columns and EXCLUDE_NOTES:
+        df = df[~df["notes"].astype(str).str.strip().isin(EXCLUDE_NOTES)]
+
     # Suodata nollasummat ja negatiiviset pois
     if "amount" in df.columns:
         df = df[df["amount"] > 0]

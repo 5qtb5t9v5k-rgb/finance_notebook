@@ -61,7 +61,7 @@ def load_from_supabase() -> pd.DataFrame:
 
     # Varmista oikeat tyypit
     if "date" in df.columns:
-        df["date"] = pd.to_datetime(df["date"]).dt.date
+        df["date"] = pd.to_datetime(df["date"])
 
     return df
 
@@ -75,11 +75,15 @@ def _make_tx_id(date: str, merchant: str, amount: float, time: str = "") -> str:
 
 def _parse_note(raw: str) -> tuple[str, float]:
     raw = str(raw).strip().strip('"')
+    # Prosenttijako: F/50% → ('F', 0.5)
     m = re.search(r'/(\d+)%', raw)
     if m:
         pct = float(m.group(1)) / 100
-        code = re.sub(r'/\d+%$', '', raw).strip()
+        code = re.sub(r'/\d+%.*$', '', raw).strip()
         return code, pct
+    # Vapaa teksti suffixina: H/telkkari → ('H', 1.0)
+    if '/' in raw:
+        return raw.split('/')[0].strip(), 1.0
     return raw, 1.0
 
 

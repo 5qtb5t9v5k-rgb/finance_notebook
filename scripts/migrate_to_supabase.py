@@ -52,13 +52,23 @@ def make_tx_id(date: str, merchant: str, amount: float, time: str = "") -> str:
 
 
 def parse_note_and_allocation(raw_note: str) -> tuple[str, float]:
-    """'F/50%' → ('F', 0.5) | 'RT' → ('RT', 1.0) | '' → ('', 1.0)"""
+    """
+    'F/50%'      → ('F', 0.5)   kustannusjako
+    'H/telkkari' → ('H', 1.0)   vapaa teksti suffixina
+    'RT'         → ('RT', 1.0)
+    ''           → ('', 1.0)
+    """
     raw = str(raw_note).strip().strip('"')
+    # Prosenttijako: F/50% → ('F', 0.5)
     match = re.search(r'/(\d+)%', raw)
     if match:
         pct = float(match.group(1)) / 100
-        code = re.sub(r'/\d+%$', '', raw).strip()
+        code = re.sub(r'/\d+%.*$', '', raw).strip()
         return code, pct
+    # Vapaa teksti suffixina: H/telkkari → ('H', 1.0)
+    if '/' in raw:
+        code = raw.split('/')[0].strip()
+        return code, 1.0
     return raw, 1.0
 
 
