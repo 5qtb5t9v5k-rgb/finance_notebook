@@ -116,6 +116,10 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
         for card_num in EXCLUDE_CARD_LAST4:
             df = df[df["card_last4"] != card_num]
     
+    # Suodata nollasummat ja negatiiviset pois
+    if "amount" in df.columns:
+        df = df[df["amount"] > 0]
+
     # Drop txn_type column if it exists
     if "txn_type" in df.columns:
         df = df.drop(columns=["txn_type"])

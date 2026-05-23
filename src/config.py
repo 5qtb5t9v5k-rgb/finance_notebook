@@ -27,7 +27,8 @@ CARD_MAPPING = {
     6334: "crypto.com",
     9264: "norwegian",
     8529: "norwegian",
-    829: "OP"
+    829:  "OP",
+    8834: "OP Debit"
 }
 
 # Category mappings (main category -> subcategory abbreviations)
@@ -133,7 +134,7 @@ DEFAULT_START_DATE = '2025-01-01'
 
 # Data cleaning filters
 EXCLUDE_TYPES = ["REFUNDED"]
-EXCLUDE_NOTES = [" del"]
+EXCLUDE_NOTES = ["del", " del"]
 EXCLUDE_CURRENCIES = [" CPT"]
 EXCLUDE_CARD_LAST4 = [2033]
 
