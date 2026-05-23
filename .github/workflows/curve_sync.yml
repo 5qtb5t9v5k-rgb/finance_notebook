@@ -1,0 +1,50 @@
+name: Curve → Supabase Sync
+
+on:
+  schedule:
+    # Tarkistaa kerran tunnissa (UTC) — Suomessa 1h viive max
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    # Manuaalinen ajo GitHub UI:sta (Actions → Run workflow)
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check Gmail for new Curve export
+        id: gmail
+        env:
+          GMAIL_CLIENT_ID:     ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+        run: |
+          # Exit code 1 = ei uusia emaileja → continue-on-error skippaa seuraavat
+          python scripts/gmail_watcher.py --output /tmp/curve_transactions.csv
+        continue-on-error: true
+
+      - name: Migrate CSV → Supabase
+        if: steps.gmail.outcome == 'success'
+        env:
+          SUPABASE_URL:        ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          python scripts/migrate_to_supabase.py /tmp/curve_transactions.csv
+
+      - name: Summary
+        if: steps.gmail.outcome == 'success'
+        run: |
+          echo "✅ Sync valmis $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY

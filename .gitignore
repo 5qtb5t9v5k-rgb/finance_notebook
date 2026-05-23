@@ -60,3 +60,6 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+# Gmail OAuth (älä committaa)
+credentials.json
+.gmail_token.json

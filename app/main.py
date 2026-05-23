@@ -46,6 +46,7 @@ from src.pipeline import (
     process_dataframe
 )
 from src.config import CATEGORY_EN_TO_FI, GENERAL_2ND_CATEGORIES
+from src.supabase_sync import load_from_supabase, upsert_csv_to_supabase, get_db_status
 
 
 # Page configuration
@@ -73,15 +74,15 @@ def load_data():
 
 
 def refresh_data():
-    """Process new files and reload data."""
-    with st.spinner("Processing new files..."):
+    """Lataa data Supabasesta session stateen."""
+    with st.spinner("Ladataan Supabasesta..."):
         try:
-            df = process_new_files(verbose=False)
+            df = load_from_supabase()
             if not df.empty:
                 st.session_state.df = df
+                st.session_state.edited = False
         except Exception as e:
-            st.warning(f"Could not process new files: {e}")
-    st.session_state.edited = False
+            st.warning(f"Supabase-lataus epäonnistui: {e}")
     st.rerun()
 
 
@@ -694,31 +695,38 @@ with st.sidebar:
     )
     
     if uploaded_file is not None:
-        if st.button("🔄 Process Uploaded File", use_container_width=True, type="primary"):
+        if st.button("⬆️ Upsert Supabaseen", use_container_width=True, type="primary"):
             try:
-                with st.spinner("Processing uploaded CSV file..."):
-                    # Read CSV from uploaded file
-                    df_uploaded = pd.read_csv(uploaded_file, delimiter=',', quotechar='"', encoding='utf-8')
-                    
-                    # Strip column names
-                    df_uploaded.columns = [col.strip() for col in df_uploaded.columns]
-                    
-                    # Process through pipeline
-                    df_processed = process_dataframe(df_uploaded, start_date='2025-01-01', verbose=False)
-                    
-                    # Save to session state
-                    st.session_state.df = df_processed
+                with st.spinner("Prosessoidaan ja tallennetaan Supabaseen..."):
+                    result = upsert_csv_to_supabase(uploaded_file)
+                st.success(
+                    f"✅ {result['txns_upserted']} tapahtumaa · "
+                    f"{result['rules_upserted']} sääntöä · "
+                    f"{result['txns_skipped']} lukittua ohitettu"
+                )
+                if result['needs_review'] > 0:
+                    st.warning(f"⚠️ {result['needs_review']} tapahtumaa needs_review")
+                # Lataa tuore data Supabasesta
+                df_fresh = load_from_supabase()
+                if not df_fresh.empty:
+                    st.session_state.df = df_fresh
                     st.session_state.edited = False
-                    
-                    st.success(f"✅ Processed {len(df_processed)} transactions!")
-                    st.rerun()
+                st.rerun()
             except Exception as e:
-                st.error(f"❌ Error processing file: {str(e)}")
+                st.error(f"❌ Virhe: {str(e)}")
     
     st.divider()
     
-    if st.button("🔄 Refresh Data", use_container_width=True):
+    if st.button("🔄 Lataa Supabasesta", use_container_width=True):
         refresh_data()
+        st.rerun()
+
+    # DB-status
+    try:
+        db = get_db_status()
+        st.caption(f"🗄️ {db['transactions']} tapahtumaa · {db['needs_review']} review")
+    except Exception:
+        pass
     
     st.divider()
     
@@ -748,28 +756,24 @@ with st.sidebar:
             total_amount = st.session_state.df[amount_col].sum()
             st.metric("Total Amount", f"€{total_amount:,.2f}")
 
-# Load data if not loaded
+# Load data if not loaded — Supabase ensin
 if st.session_state.df.empty:
-    # Try to process default CSV file if it exists
-    from src.config import DEFAULT_CSV_PATH
-    from src.pipeline import process_file
-    if DEFAULT_CSV_PATH and os.path.exists(DEFAULT_CSV_PATH):
-        with st.spinner("Processing CSV file..."):
-            try:
-                st.session_state.df = process_file(DEFAULT_CSV_PATH, start_date='2025-01-01', verbose=False)
-                st.success("✅ CSV file processed successfully!")
-                st.rerun()
-            except Exception as e:
-                st.warning(f"Could not process CSV: {e}")
+    with st.spinner("Ladataan Supabasesta..."):
+        try:
+            df_sb = load_from_supabase()
+            if not df_sb.empty:
+                st.session_state.df = df_sb
+        except Exception as e:
+            st.warning(f"Supabase-lataus epäonnistui: {e}")
 
 if st.session_state.df.empty:
-    st.info("📋 No data found. Please upload a CSV file using the sidebar (📤 Upload CSV File) or process CSV files from the sidebar (🔄 Refresh Data).")
-    st.warning("💡 **Tip:** Use the sidebar on the left to upload or process CSV files.")
+    st.info("📋 Ei dataa. Lataa Curve CSV sidebarista (📤 Upload CSV File) niin se upsertautuu Supabaseen.")
+    st.warning("💡 **Vinkki:** Käytä vasemman laidan sidebaria CSV:n lataamiseen.")
 else:
     df = st.session_state.df.copy()
     
-    tab_names = ["📊 Dashboard", "📈 Analytics", "📋 Transactions", "✏️ Edit Categories", "💰 Budget", "🤖 Chat"]
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(tab_names)
+    tab_names = ["📊 Dashboard", "📈 Analytics", "📋 Transactions", "✏️ Edit Categories", "💰 Budget", "🔍 Review", "🤖 Chat"]
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(tab_names)
     
     with tab1:
         st.header("Dashboard")
@@ -2758,5 +2762,93 @@ else:
                 st.info("Category or amount data not available.")
     
     with tab6:
+        st.header("🔍 Review — tarkista epävarmat tapahtumat")
+        st.caption("Tapahtumat joissa needs_review = true (valuuttakorjatut tai tuntematon kategoria)")
+
+        try:
+            sb_client = __import__('src.supabase_sync', fromlist=['_get_client'])._get_client()
+            review_res = sb_client.table('transactions').select('*').eq('needs_review', True).order('date', desc=True).execute()
+            review_rows = review_res.data or []
+        except Exception as e:
+            st.error(f"Supabase-virhe: {e}")
+            review_rows = []
+
+        if not review_rows:
+            st.success("✅ Ei tarkistettavia tapahtumia!")
+        else:
+            st.warning(f"⚠️ {len(review_rows)} tapahtumaa odottaa tarkistusta")
+
+            review_df = pd.DataFrame(review_rows)
+
+            # Näytä taulukko
+            display_cols = ['date', 'merchant', 'amount', 'category_fi', 'second_cat_fi', 'note_raw', 'currency', 'needs_review', 'locked']
+            display_cols = [c for c in display_cols if c in review_df.columns]
+            st.dataframe(
+                review_df[display_cols],
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    'date':          st.column_config.DateColumn('Päivä'),
+                    'merchant':      st.column_config.TextColumn('Kauppias'),
+                    'amount':        st.column_config.NumberColumn('Summa', format='€%.2f'),
+                    'category_fi':   st.column_config.TextColumn('Kategoria'),
+                    'second_cat_fi': st.column_config.TextColumn('Alikategoria'),
+                    'note_raw':      st.column_config.TextColumn('Note'),
+                    'currency':      st.column_config.TextColumn('Valuutta', width='small'),
+                    'needs_review':  st.column_config.CheckboxColumn('Review'),
+                    'locked':        st.column_config.CheckboxColumn('Lukittu'),
+                }
+            )
+
+            st.divider()
+            st.subheader("Merkitse tarkistetuksi")
+
+            selected_id = st.selectbox(
+                "Valitse tapahtuma",
+                options=[r['id'] for r in review_rows],
+                format_func=lambda i: next(
+                    f"{r['date']} | {r['merchant']} | €{r['amount']:.2f}"
+                    for r in review_rows if r['id'] == i
+                )
+            )
+
+            if selected_id:
+                row = next(r for r in review_rows if r['id'] == selected_id)
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    new_cat = st.selectbox(
+                        "Kategoria",
+                        options=list(CATEGORY_EN_TO_FI.values()),
+                        index=list(CATEGORY_EN_TO_FI.values()).index(row['category_fi'])
+                            if row['category_fi'] in CATEGORY_EN_TO_FI.values() else 0
+                    )
+                with col2:
+                    new_note = st.text_input("Note", value=row.get('note_raw', ''))
+
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    if st.button("✅ Merkitse OK (needs_review = false)", use_container_width=True, type="primary"):
+                        try:
+                            sb_client.table('transactions').update({
+                                'needs_review': False,
+                                'category_fi': new_cat,
+                                'note_raw': new_note,
+                                'locked': True,  # käsin korjattu → lukitaan
+                            }).eq('id', selected_id).execute()
+                            st.success("✅ Tallennettu ja lukittu!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Virhe: {e}")
+                with col_b:
+                    if st.button("🗑️ Poista tapahtuma", use_container_width=True):
+                        try:
+                            sb_client.table('transactions').delete().eq('id', selected_id).execute()
+                            st.success("🗑️ Poistettu!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Virhe: {e}")
+
+    with tab7:
         st.info("🚧 Finance Coach -chat rakenteilla. Tänne tulee MCP-pohjainen chat joka osaa vastata talouskyselyihin suomeksi.")
 

@@ -220,9 +220,10 @@ def validate_categories(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
     )
     
     # Check remaining empty categories
+    display_cols = [c for c in ["date", "time", "merchant", "amount", "category", "2nd category"] if c in df.columns]
     remaining = df.loc[
         empty_2nd & df["category"].isin(CHECK_CATEGORIES),
-        ["date", "time", "merchant", "amount", "category", "2nd category"]
+        display_cols
     ]
     
     if verbose:

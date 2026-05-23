@@ -56,6 +56,10 @@ CATEGORY_MAPPING = {
         'S': 'Snacks & Soda',
         'R': 'Restaurants'
     },
+    'Food & Drink': {   # Curven uudempi nimi, sama logiikka
+        'S': 'Snacks & Soda',
+        'R': 'Restaurants'
+    },
     'Groceries': {},
     'Health': {
         'F': 'Family',
@@ -75,6 +79,7 @@ CATEGORY_EN_TO_FI = {
     'Transport': 'Autoilu & Liikkuminen',
     'Shopping': 'Ostokset',
     'Eating Out': 'Ulkona syöminen',
+    'Food & Drink': 'Ulkona syöminen',   # Curven uudempi kategoria, sama merkitys
     'Groceries': 'Ruokakauppa',
     'Subscriptions': 'Striimaus & Palvelut',
     'Health': 'Terveys',

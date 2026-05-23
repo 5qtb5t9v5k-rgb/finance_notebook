@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     card_name       TEXT,
     rule_source     TEXT NOT NULL DEFAULT 'manual',  -- miten kategorisoitiin
     needs_review    BOOLEAN NOT NULL DEFAULT FALSE,
+    locked          BOOLEAN NOT NULL DEFAULT FALSE,  -- TRUE = käsin korjattu, CSV-upload ei ylikirjoita
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
