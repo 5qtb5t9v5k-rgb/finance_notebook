@@ -31,20 +31,24 @@ Streamlit upload-flow
 
 ## Milestonet
 
-### M0 — Data Foundation `[IN PROGRESS]`
+### M0 — Data Foundation `[DONE ✅]`
 
 **Tavoite:** Kaikki historia Supabaseen, merchant rules opittu, MCP lukee kannasta.
 
 - [x] Schema suunniteltu (`scripts/schema.sql`)
 - [x] Migraatioskripti kirjoitettu (`scripts/migrate_to_supabase.py`)
-- [ ] Schema ajettu Supabasessa
-- [ ] Migraatio ajettu — 1 125 tapahtumaa + ~430 merchant-sääntöä sisään
-- [ ] Finance MCP (mcp-inventory/servers/finance) päivitetty lukemaan Supabasesta
-- [ ] Upload-flow Streamlitissä: CSV → parse → upsert Supabaseen
-- [ ] Review-näkymä: tapahtumat joissa `needs_review = true`
+- [x] Schema ajettu Supabasessa
+- [x] Migraatio ajettu — 942 tapahtumaa + 757 merchant-sääntöä sisään
+- [x] Finance MCP (mcp-inventory/servers/finance) päivitetty lukemaan Supabasesta
+- [x] Upload-flow Streamlitissä: CSV → parse → upsert Supabaseen
+- [x] Review-näkymä: tapahtumat joissa `needs_review = true`
+- [x] Datalaatu: ALL-valuuttakorjaus, del-filtteri, nollasuodatus, note_code-parser, OP Debit -kortti
 
 **Valmis kun:** Uusi CSV ladataan → tapahtumat näkyvät Supabasessa alle 30s,
 merchant lookup osuu >85% tutuille.
+
+✅ **Valmistui 2026-05-23.** MCP toimii Claude iOS -sovelluksessa osoitteessa
+`https://finance-mcp-jr.fly.dev/uu_POATzZhcA0XYwamgbXQ97I1dp7w0s/`
 
 ---
 
@@ -94,5 +98,6 @@ uusille merchanteille.
 - ❌ Health × Finance -korrelaatiot (M3 hylätty)
 - ❌ Oikea ML-malli (merchant lookup + LLM kattaa käytännön tarpeen)
 - ❌ Multi-user / perheenjäsenten jako
+- ✅ Gmail-automatisointi (`scripts/gmail_watcher.py` + GitHub Actions cron) — tehty M0:n yhteydessä
 - ❌ Pankkiintegraatiot / automaattinen CSV-haku
 - ❌ Sijoitusten seuranta (eri projekti)

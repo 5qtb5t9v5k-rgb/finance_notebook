@@ -771,8 +771,10 @@ if st.session_state.df.empty:
     st.warning("💡 **Vinkki:** Käytä vasemman laidan sidebaria CSV:n lataamiseen.")
 else:
     df = st.session_state.df.copy()
-    
-    tab_names = ["📊 Dashboard", "📈 Analytics", "📋 Transactions", "✏️ Edit Categories", "💰 Budget", "🔍 Review", "🤖 Chat"]
+    if 'date' in df.columns:
+        df['date'] = pd.to_datetime(df['date'], errors='coerce')
+
+    tab_names = ["📊 Dashboard", "📈 Analytics", "📋 Transactions", "✏️ Edit Categories", "💰 Budget", "🔍 Review", "🎯 Coach"]
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(tab_names)
     
     with tab1:
@@ -2850,5 +2852,112 @@ else:
                             st.error(f"Virhe: {e}")
 
     with tab7:
-        st.info("🚧 Finance Coach -chat rakenteilla. Tänne tulee MCP-pohjainen chat joka osaa vastata talouskyselyihin suomeksi.")
+        st.header("🎯 Budget Coach")
+        st.caption("Budjettitilanne kuluvan kuukauden osalta. Muokkaa tavoitteet `config/playbook.yaml`-tiedostossa.")
 
+        try:
+            from src.budget_coach import load_playbook, get_budget_status, get_payday, _bar
+            import calendar as _cal
+
+            pb     = load_playbook()
+            status = get_budget_status(pb, df)
+
+            today_d      = status["today"]
+            days_passed  = status["days_passed"]
+            days_in_month = status["days_in_month"]
+            days_left    = days_in_month - days_passed
+            expected_pct = days_passed / days_in_month
+            total_pct    = status["total_pct"]
+
+            # ── Payday info ───────────────────────────────────────────────────
+            payday = get_payday(today_d.year, today_d.month, pb["salary"]["day"])
+            days_to_payday = (payday - today_d).days
+            if days_to_payday == 0:
+                payday_str = "💰 **Tänään on palkkapäivä!**"
+            elif days_to_payday > 0:
+                payday_str = f"💰 Seuraava palkkapäivä: **{payday.day}.{payday.month}.** ({days_to_payday} pv)"
+            else:
+                # This month's payday already passed — show next month's
+                import calendar as _cal2
+                next_month = today_d.month % 12 + 1
+                next_year  = today_d.year + (1 if next_month == 1 else 0)
+                next_payday = get_payday(next_year, next_month, pb["salary"]["day"])
+                days_to_payday = (next_payday - today_d).days
+                payday_str = f"💰 Seuraava palkkapäivä: **{next_payday.day}.{next_payday.month}.** ({days_to_payday} pv)"
+            st.info(payday_str)
+
+            # ── Top metrics ───────────────────────────────────────────────────
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Kulutettu", f"€{status['total_spent']:.0f}",
+                          delta=f"{total_pct*100:.0f}% budjetista")
+            with col2:
+                st.metric("Budjetti", f"€{status['total_budget']:.0f}")
+            with col3:
+                st.metric("Jäljellä", f"€{status['total_remaining']:.0f}",
+                          delta=f"{days_left} pv kuussa",
+                          delta_color="off")
+            with col4:
+                salary  = pb["salary"]["monthly_net"]
+                savings = pb["budget"].get("savings_target", 0)
+                st.metric("Säästötavoite", f"€{savings:.0f}",
+                          delta=f"netto {salary:.0f} €")
+
+            st.divider()
+
+            # ── Overall progress bar ──────────────────────────────────────────
+            pace_color = (
+                "#d62728" if total_pct > 1.0
+                else "#ff7f0e" if total_pct > expected_pct * 1.10
+                else "#2ca02c"
+            )
+            pace_label = (
+                "🔴 Budjetti ylitetty!" if total_pct > 1.0
+                else "🟡 Kulutus edellä tahtia" if total_pct > expected_pct * 1.10
+                else "🟢 Tahti OK"
+            )
+            st.markdown(f"**Kokonaisbudjetti** — {pace_label}")
+            st.progress(min(total_pct, 1.0))
+            st.caption(
+                f"Käytetty {total_pct*100:.0f}% | "
+                f"Odotettavissa tässä vaiheessa {expected_pct*100:.0f}% "
+                f"({days_passed}/{days_in_month} pv)"
+            )
+
+            # ── Category gauges ───────────────────────────────────────────────
+            if status["categories"]:
+                st.divider()
+                st.subheader("Kategoriat")
+
+                sorted_cats = sorted(
+                    status["categories"].items(),
+                    key=lambda x: x[1]["pct"],
+                    reverse=True,
+                )
+
+                for cat, info in sorted_cats:
+                    pct  = info["pct"]
+                    flag = "🔴" if pct >= 1.0 else ("🟡" if pct >= 0.8 else "🟢")
+                    label = (
+                        f"{flag} **{cat}** — "
+                        f"€{info['spent']:.0f} / €{info['budget']:.0f} "
+                        f"({pct*100:.0f}%)"
+                    )
+                    st.markdown(label)
+                    st.progress(min(pct, 1.0))
+
+            # ── Playbook editor link ──────────────────────────────────────────
+            st.divider()
+            with st.expander("⚙️ Budjettiasetukset (playbook.yaml)"):
+                pb_path = __import__("pathlib").Path(__file__).parent.parent / "config" / "playbook.yaml"
+                try:
+                    pb_text = pb_path.read_text(encoding="utf-8")
+                    st.code(pb_text, language="yaml")
+                except Exception:
+                    st.warning("Ei voitu lukea playbook.yaml")
+                st.caption(f"Tiedosto: `{pb_path}`")
+
+        except Exception as e:
+            st.error(f"Coach-virhe: {e}")
+            import traceback
+            st.code(traceback.format_exc())

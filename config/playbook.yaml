@@ -1,0 +1,29 @@
+# Finance Coach — Playbook
+# Muokkaa tähän omat budjettitavoitteet.
+# Tiedosto luetaan automaattisesti budget_coach.py:ssä.
+
+salary:
+  day: 13              # Kuun 13. päivä (tai edellinen arkipäivä jos vkl/pyhä)
+  monthly_net: 3500    # €/kk nettona (muuta omaksesi)
+
+budget:
+  total_monthly: 2500  # Kaikki kulut yhteensä max €/kk
+  savings_target: 800  # Tavoite säästöön €/kk
+
+  # Kategoriakohtaiset kuukausirajat (€). 0 = ei rajaa / ei seurata.
+  # Kategorioiden nimet vastaavat Supabase-kategorioita (suomeksi).
+  categories:
+    Ruokakauppa:                              400
+    Ulkona syöminen:                          200
+    Ostokset:                                 300
+    Autoilu & Liikkuminen:                    150
+    Terveys:                                  100
+    Matkailu:                                 200
+    Tapahtumat & Viihde:                      100
+    Harrastukset:                             100
+    Striimaus & Palvelut:                      60
+    Koulutus, Kirjallisuus & Kehittäminen:      0  # ei seurata
+
+alerts:
+  warning_threshold: 0.80   # Varoitus kun 80 % käytetty
+  critical_threshold: 1.00  # Kriittinen kun 100 % ylitetty
