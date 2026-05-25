@@ -699,10 +699,12 @@ with st.sidebar:
             try:
                 with st.spinner("Prosessoidaan ja tallennetaan Supabaseen..."):
                     result = upsert_csv_to_supabase(uploaded_file)
+                deleted = result.get('txns_deleted', 0)
                 st.success(
                     f"✅ {result['txns_upserted']} tapahtumaa · "
                     f"{result['rules_upserted']} sääntöä · "
                     f"{result['txns_skipped']} lukittua ohitettu"
+                    + (f" · 🗑️ {deleted} del-riviä poistettu" if deleted else "")
                 )
                 if result['needs_review'] > 0:
                     st.warning(f"⚠️ {result['needs_review']} tapahtumaa needs_review")

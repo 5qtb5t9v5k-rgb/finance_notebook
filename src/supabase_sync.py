@@ -155,6 +155,24 @@ def upsert_csv_to_supabase(csv_source, batch_size: int = 100) -> dict:
         with open(csv_path, encoding='utf-8') as f:
             raw_rows = list(csv_module.DictReader(f))
 
+        # Kerää del-rivien hash-ID:t → poistetaan Supabasesta
+        del_ids: set[str] = set()
+        for r in raw_rows:
+            if _should_exclude(r):
+                m   = r.get(' Merchant', r.get('Merchant', '')).strip().strip('"')
+                d   = r.get(' Date (YYYY-MM-DD as UTC)', r.get('Date (YYYY-MM-DD as UTC)', '')).strip()
+                amt, _ = _resolve_eur(r)
+                t   = r.get(' Time (UTC)', r.get('Time (UTC)', '')).strip()
+                del_ids.add(_make_tx_id(d, m, amt, t))
+
+        deleted_count = 0
+        if del_ids:
+            for del_id in del_ids:
+                res = sb.table('transactions').select('id').eq('id', del_id).eq('locked', False).execute()
+                if res.data:
+                    sb.table('transactions').delete().eq('id', del_id).execute()
+                    deleted_count += 1
+
         raw_map: dict[tuple, dict] = {}
         for r in raw_rows:
             if _should_exclude(r):
@@ -275,6 +293,7 @@ def upsert_csv_to_supabase(csv_source, batch_size: int = 100) -> dict:
             'txns_upserted':   txns_ok,
             'txns_errors':     txns_err,
             'txns_skipped':    len(locked_ids),
+            'txns_deleted':    deleted_count,
             'needs_review':    sum(1 for t in txns if t['needs_review']),
         }
 
