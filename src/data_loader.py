@@ -60,6 +60,19 @@ def initial_cleanup(df: pd.DataFrame) -> pd.DataFrame:
     if "Notes" in df.columns:
         df = df[df["Notes"] != " del"]
     
+    # Korjaa ALL/USD-valuuttabugi ennen kuin foreign spend -sarake poistetaan:
+    # Jos funding-valuutta ei ole EUR mutta foreign-valuutta on EUR, käytä foreign-summaa
+    fc = "Txn Currency (Funding Card)"
+    fa = "Txn Amount (Funding Card)"
+    xc = "Txn Currency (Foreign Spend)"
+    xa = "Txn Amount (Foreign Spend)"
+    if all(c in df.columns for c in [fc, fa, xc, xa]):
+        mask = (df[fc].str.strip() != "EUR") & (df[xc].str.strip() == "EUR")
+        foreign_eur = pd.to_numeric(df.loc[mask, xa], errors="coerce")
+        valid = mask & foreign_eur.gt(0)
+        df.loc[valid, fa] = foreign_eur[valid]
+        df.loc[valid, fc] = "EUR"
+
     # Drop unnecessary columns
     columns_to_drop = ["Export Format", "Txn Amount (Foreign Spend)"]
     df = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
